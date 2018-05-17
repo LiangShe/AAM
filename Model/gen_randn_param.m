@@ -1,17 +1,17 @@
 function p = gen_randn_param( np, data)
 % p = gen_randn_param( np, data)
-% generate random parameters follow samples from data
-% data: data samples (samples, dimensions)
+% generate gaussian distributed random parameters
 % np: number of parameter vectors to generate
-% assuming gaussion distributions, cut off to the largest/smallest real value 
+% cut off to the max/min values 
 
-ndim = size(data,2);
+ndim = length(data.score_mean);
 p = zeros(ndim, np);
 for i = 1:ndim
-    std_1dim = std(data(:,i));
-    max_1dim = max(data(:,i));
-    min_1dim = min(data(:,i));
-    mean_1dim = mean(data(:,i));
+    mean_1dim = data.score_mean(i);
+    std_1dim = data.score_std(i);
+    max_1dim = data.score_max(i);
+    min_1dim = data.score_min(i);
+    
     for j = 1:np
         r = randn * std_1dim + mean_1dim;
         while r >max_1dim || r <min_1dim
@@ -21,6 +21,4 @@ for i = 1:ndim
     end
 end
 
-
 end
-
