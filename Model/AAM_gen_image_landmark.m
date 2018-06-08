@@ -1,5 +1,5 @@
-function  [im, landmark]= AAM_gen_image( p_id_mark, p_id_texture, model, output_res )
-% AAM_gen_image
+function  im = AAM_gen_image_landmark( landmark, p_id_texture, model, output_res )
+% AAM gen image by input of actual facial landmarks
 %
 
 % buffer size
@@ -8,18 +8,7 @@ resy = output_res(1)*model.image.upsampling;
 
 
 %% mark
-neutral_mark = model.id_mark.mean' + model.id_mark.eig_vector * p_id_mark;
-neutral_mark = reshape(neutral_mark, [], 2);
-
-% scale face width () to proportion of images
-width_ind = model.mark_group.width;
-width = resx*model.image.width_factor...
-    /(neutral_mark(width_ind(2),1) - neutral_mark(width_ind(1),1)); 
-
-dy = model.image.y_offset_factor * resx;
-
-neutral_mark(:,1) = neutral_mark(:,1) * width + resx/2;
-neutral_mark(:,2) = neutral_mark(:,2) * width + resy/2 + dy;
+neutral_mark = landmark;
 
 %% texture
 [resy_texture, resx_texture] = size(model.x_texture);
@@ -40,6 +29,5 @@ if model.image.upsampling>1
     im = imresize(im, output_res);
 end
 
-landmark = neutral_mark;
 end
 
