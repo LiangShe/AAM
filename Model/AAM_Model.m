@@ -69,7 +69,7 @@ classdef AAM_Model
         function [im_syn, landmarks] = gen_image_param(me, params, output_res)
             n = size(params,1);
             im_syn = zeros([output_res, 3, n]);
-            for i = 1:n
+            parfor i = 1:n
                 %fprintf('Generating images %d/%d\n',i,n);
                 p_id_mark = params(i,1:me.npc_mark)';
                 p_id_texture = params(i,me.npc_mark+1:end)';

@@ -16,38 +16,38 @@ if isinteger(source_texture)
     source_texture = single(source_texture);
 end
 
+%%
 [sx, sy] = xy2grid(source_x, source_y);
 [tx, ty] = xy2grid(target_x, target_y);
-
-
-
-%%
-nch = size(source_texture,3);
-
-[target_resy, target_resx] = size(tx);
-im = nan(target_resy, target_resx, nch);
-
-% locate points belong to each facets in target image
-nf = size(facets,1);
-pt_ind_facets = false(numel(tx), nf);
-for i = 1:nf
-    xv = target_mark(facets(i,:),1);
-    yv = target_mark(facets(i,:),2);
-    pt_ind_facets(:, i) = inpolygon(tx(:), ty(:), xv, yv);
-end
-% pt_ind_all = any(pt_ind_facets,2);
 
 % compute affine transformation
 aft = affine_transform_triangles(target_mark, source_mark, facets);
 
-% piece-wise transform
+xt = nan(size(tx)); % target x transformed in source coordinate
+yt = nan(size(ty));
+
+%%
+nf = size(facets,1);
+for i = 1:nf
+    xv = target_mark(facets(i,:),1);
+    yv = target_mark(facets(i,:),2);
+    pt_ind = inpolygon(tx(:), ty(:), xv, yv); % locate points belong to each facets in target image
+    xyt = [tx(pt_ind) ty(pt_ind) ones(sum(pt_ind),1)] * aft(:,:,i)';  %  piece-wise transform
+    xt(pt_ind) = xyt(:,1);
+    yt(pt_ind) = xyt(:,2);
+end
+
+%%
+nch = size(source_texture,3);
+[target_resy, target_resx] = size(tx);
+
+im = nan(target_resy, target_resx, nch);
+
+% fill image
+pt_ind_all = ~isnan(xt);
 for i = 1:nch
     im1 = nan(target_resy, target_resx);
-    for k = 1:nf
-        pt_ind = pt_ind_facets(:, k);
-        xyt = [tx(pt_ind) ty(pt_ind) ones(sum(pt_ind),1)] * aft(:,:,k)';
-        im1(pt_ind) = interp2(sx, sy, source_texture(:,:,i), xyt(:,1), xyt(:,2));
-    end
+    im1(pt_ind_all) = interp2(sx, sy, source_texture(:,:,i), xt(pt_ind_all), yt(pt_ind_all));
     im(:,:,i) = im1;
 end
 
