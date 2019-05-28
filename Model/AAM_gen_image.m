@@ -8,7 +8,8 @@ resy = output_res(1)*model.image.upsampling;
 
 
 %% mark
-neutral_mark = model.id_mark.mean' + model.id_mark.eig_vector * p_id_mark;
+nmark = length(p_id_mark);
+neutral_mark = model.id_mark.mean' + model.id_mark.eig_vector(:,1:nmark) * p_id_mark;
 neutral_mark = reshape(neutral_mark, [], 2);
 
 % scale face width () to proportion of images
@@ -22,8 +23,9 @@ neutral_mark(:,1) = neutral_mark(:,1) * width + resx/2;
 neutral_mark(:,2) = neutral_mark(:,2) * width + resy/2 + dy;
 
 %% texture
+ntexture = length(p_id_texture);
 [resy_texture, resx_texture] = size(model.x_texture);
-neutral_texture = model.id_texture.mean' + model.id_texture.eig_vector * p_id_texture ;
+neutral_texture = model.id_texture.mean' + model.id_texture.eig_vector(:,1:ntexture) * p_id_texture ;
 neutral_texture = reshape(neutral_texture, resy_texture, resx_texture, 3);
 
 im = draw_texture( neutral_texture, model.id_mark.mean, model.x_texture, model.y_texture, neutral_mark, resx, resy, model.facets );

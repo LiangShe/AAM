@@ -66,13 +66,45 @@ classdef AAM_Model
         
         %% gen_image_param ()
         % generate image from provided parameters
-        function [im_syn, landmarks] = gen_image_param(me, params, output_res)
+        function [im_syn, landmarks] = gen_image_param(me, params, output_res, options)
+            % [im_syn, landmarks] = gen_image_param(me, params, output_res, options)
+            % INPUT:
+            %    params: shape-appearance paramters 
+            %    output_res: output resolution
+            % 
+            %    [optional] 
+            %        options.ndim_shape: number of shape dimension
+            %        options.normalized: true or false, params is normalized or not
+            
+            if nargin<4
+                options = [];
+            end
+            
+            if isfield(options, 'ndim_shape')
+                nmark = options.ndim_shape;
+            else
+                nmark = me.npc_mark;
+            end
+            
+            ntexture = size(params,2) - nmark; 
+            
+            % if params are normalized, recover its scale
+            if isfield(options, 'normalized') && options.normalized
+                p_std = [me.data.id_mark.score_std(1:nmark) me.data.id_texture.score_std(1:ntexture) ];
+                p_mean = [me.data.id_mark.score_mean(1:nmark) me.data.id_texture.score_mean(1:ntexture) ];
+                params = bsxfun(@times, params, p_std);
+                params = bsxfun(@plus, params, p_mean);
+            end
+            
             n = size(params,1);
             im_syn = zeros([output_res, 3, n]);
+            
+            params_id_mark = params(:,1:nmark);
+            params_id_texture = params(:, nmark+1:end);
             parfor i = 1:n
                 %fprintf('Generating images %d/%d\n',i,n);
-                p_id_mark = params(i,1:me.npc_mark)';
-                p_id_texture = params(i,me.npc_mark+1:end)';
+                p_id_mark = params_id_mark(i,:)';
+                p_id_texture = params_id_texture(i,:)';
                 [im_syn(:,:,:,i), landmarks(:,:,i)]= AAM_gen_image( p_id_mark, p_id_texture, me.data, output_res);
             end
         end
