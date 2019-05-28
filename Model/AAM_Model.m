@@ -11,35 +11,35 @@ classdef AAM_Model
     methods
         
         %% constructor
-        function me = AAM_Model(data_file)
+        function self = AAM_Model(data_file)
             load(fullfile(data_file))
-            me.data = model;
-            me.npc_mark = npc_id_mark;
-            me.npc_texture = npc_id_texture;
+            self.data = model;
+            self.npc_mark = npc_id_mark;
+            self.npc_texture = npc_id_texture;
         end
         
         %% helper
-        function examination(me, output_path, output_res)
+        function examination(self, output_path, output_res)
             if nargin<3
-                Model_examination(me.data, output_path)
+                Model_examination(self.data, output_path)
             else
-                Model_examination(me.data, output_path, output_res)
+                Model_examination(self.data, output_path, output_res)
             end
         end
         
-        function params = gen_random_params(me, n)
+        function params = gen_random_params(self, n)
             % generate random paramters
             % n: number of samples to generate
-            p_id_mark = gen_randn_param( n, me.data.id_mark);
-            p_id_texture = gen_randn_param( n, me.data.id_texture);
+            p_id_mark = gen_randn_param( n, self.data.id_mark);
+            p_id_texture = gen_randn_param( n, self.data.id_texture);
             params = [p_id_mark' p_id_texture'];
         end
         
         %% compute_param
         % image and marks to params in PCA space
-        function param = compute_param(me, im_data, marks_raw)
+        function param = compute_param(self, im_data, marks_raw)
             
-            ndim = me.npc_mark + me.npc_texture;
+            ndim = self.npc_mark + self.npc_texture;
             n_faces = length(im_data);
             param = zeros(n_faces, ndim);
             
@@ -53,11 +53,11 @@ classdef AAM_Model
                 resx = size(im,2);
                 
                 texture_template = draw_texture( im, marks, resx, resy, ...
-                    me.data.id_mark.mean, me.data.x_texture, me.data.y_texture, me.data.facets );
+                    self.data.id_mark.mean, self.data.x_texture, self.data.y_texture, self.data.facets );
                 
                 marks_norm = mark_normalize(marks);
-                p_id_mark = me.data.id_mark.eig_vector' * (marks_norm(:) - me.data.id_mark.mean');
-                p_id_texture = me.data.id_texture.eig_vector' * (texture_template(:) - me.data.id_texture.mean');
+                p_id_mark = self.data.id_mark.eig_vector' * (marks_norm(:) - self.data.id_mark.mean');
+                p_id_texture = self.data.id_texture.eig_vector' * (texture_template(:) - self.data.id_texture.mean');
                 
                 param(i,:) = [p_id_mark' p_id_texture'];
             end
@@ -66,8 +66,8 @@ classdef AAM_Model
         
         %% gen_image_param ()
         % generate image from provided parameters
-        function [im_syn, landmarks] = gen_image_param(me, params, output_res, options)
-            % [im_syn, landmarks] = gen_image_param(me, params, output_res, options)
+        function [im_syn, landmarks] = gen_image_param(self, params, output_res, options)
+            % [im_syn, landmarks] = gen_image_param(self, params, output_res, options)
             % INPUT:
             %    params: shape-appearance paramters 
             %    output_res: output resolution
@@ -83,15 +83,15 @@ classdef AAM_Model
             if isfield(options, 'ndim_shape')
                 nmark = options.ndim_shape;
             else
-                nmark = me.npc_mark;
+                nmark = self.npc_mark;
             end
             
             ntexture = size(params,2) - nmark; 
             
             % if params are normalized, recover its scale
             if isfield(options, 'normalized') && options.normalized
-                p_std = [me.data.id_mark.score_std(1:nmark) me.data.id_texture.score_std(1:ntexture) ];
-                p_mean = [me.data.id_mark.score_mean(1:nmark) me.data.id_texture.score_mean(1:ntexture) ];
+                p_std = [self.data.id_mark.score_std(1:nmark) self.data.id_texture.score_std(1:ntexture) ];
+                p_mean = [self.data.id_mark.score_mean(1:nmark) self.data.id_texture.score_mean(1:ntexture) ];
                 params = bsxfun(@times, params, p_std);
                 params = bsxfun(@plus, params, p_mean);
             end
@@ -105,15 +105,15 @@ classdef AAM_Model
                 %fprintf('Generating images %d/%d\n',i,n);
                 p_id_mark = params_id_mark(i,:)';
                 p_id_texture = params_id_texture(i,:)';
-                [im_syn(:,:,:,i), landmarks(:,:,i)]= AAM_gen_image( p_id_mark, p_id_texture, me.data, output_res);
+                [im_syn(:,:,:,i), landmarks(:,:,i)]= AAM_gen_image( p_id_mark, p_id_texture, self.data, output_res);
             end
         end
         
         %% gen_image_internal(index, output_res)
         % index: index of internal images/ training images
-        function im_syn = gen_image_internal(me, index, output_res)
+        function im_syn = gen_image_internal(self, index, output_res)
             
-            if ~isfield(me.data.id_mark, 'score')
+            if ~isfield(self.data.id_mark, 'score')
                 im_syn = [];
                 return
             end
@@ -121,9 +121,9 @@ classdef AAM_Model
             n = length(index);
             im_syn = zeros([output_res, 3, n]);
             for i = 1:n
-                p_id_mark = me.data.id_mark.score(index(i),:)';
-                p_id_texture = me.data.id_texture.score(index(i),:)';
-                im_syn(:,:,:,i) = AAM_gen_image( p_id_mark, p_id_texture, me.data, output_res);
+                p_id_mark = self.data.id_mark.score(index(i),:)';
+                p_id_texture = self.data.id_texture.score(index(i),:)';
+                im_syn(:,:,:,i) = AAM_gen_image( p_id_mark, p_id_texture, self.data, output_res);
             end
 
         end
