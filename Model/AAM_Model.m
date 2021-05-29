@@ -98,6 +98,7 @@ classdef AAM_Model
             
             n = size(params,1);
             im_syn = zeros([output_res, 3, n]);
+            landmarks = zeros(length(self.data.id_mark.mean)/2,2,n);
             
             params_id_mark = params(:,1:nmark);
             params_id_texture = params(:, nmark+1:end);
