@@ -1,5 +1,6 @@
 function [ marks ] = mark_normalize( marks )
 %MARK_NORMALIZE 
+% center landmarks and normalize the width
 
 xc = mean(marks(:,1));
 yc = mean(marks(:,2));
