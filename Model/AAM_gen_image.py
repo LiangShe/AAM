@@ -44,10 +44,14 @@ def inpolygon(xq, yq, xv, yv):
     in_rect = (xq>xv.min()) & (xq<xv.max()) & (yq>yv.min()) & (yq<yv.max())
     q = np.hstack((xq[in_rect,np.newaxis],yq[in_rect,np.newaxis]))
     p = path.Path([(xv[i], yv[i]) for i in range(xv.shape[0])])
-    tf = np.zeros(n,dtype=np.bool)
+    tf = np.zeros(n,dtype=bool)
     tf[in_rect] = p.contains_points(q)
     
     return tf.reshape(shape)
+
+#%%
+def polyarea(x,y):
+    return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
 
 #%%
 
@@ -87,7 +91,7 @@ def im_mask_smooth_edge( im, mask, sigma):
     
     bg = np.zeros((1,1,1))+128
     
-    if mask.dtype != np.bool:
+    if mask.dtype != bool:
         # if it's not bool, it should be a polygon.
         [xx, yy] = np.meshgrid(range(x),range(y))
         mask = inpolygon(xx.flatten(), yy.flaten(), mask[:,0], mask[:,1])
@@ -201,15 +205,15 @@ def AAM_gen_image( p_id_mark, p_id_texture, model, output_res ):
     neutral_mark = model.id_mark.mean.T + np.dot(model.id_mark.eig_vector[:,:nmark], p_id_mark)
     neutral_mark = neutral_mark.reshape((-1,2), order='F')
     
-    # scale face width () to proportion of images
-    width_ind = model.mark_group.width-1;
-    width = resx*model.image.width_factor \
-        /(neutral_mark[width_ind[1],0] - neutral_mark[width_ind[0],0])
+    # scale face area to proportion of images
+    peri_ind = np.hstack((model.mark_group.rim, model.mark_group.rim[0]))-1
+    area = polyarea(neutral_mark[peri_ind,0], neutral_mark[peri_ind,1])
+    scaling_factor = np.sqrt(resx * resy * 0.6 / area);
     
     dy = model.image.y_offset_factor * resx;
     
-    neutral_mark[:,0] = neutral_mark[:,0] * width + resx/2
-    neutral_mark[:,1] = neutral_mark[:,1] * width + resy/2 + dy
+    neutral_mark[:,0] = neutral_mark[:,0] * scaling_factor + resx/2
+    neutral_mark[:,1] = neutral_mark[:,1] * scaling_factor + resy/2 + dy
     
     ## texture
     ntexture = len(p_id_texture)
