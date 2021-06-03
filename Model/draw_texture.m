@@ -1,4 +1,4 @@
-function im = draw_texture( source_texture, source_mark, source_x, source_y, target_mark, target_x, target_y, facets )
+function [im, pt_ind_all] = draw_texture( source_texture, source_mark, source_x, source_y, target_mark, target_x, target_y, facets )
 %DRAW_TEXTURE
 % example 
 
