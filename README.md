@@ -1,3 +1,3 @@
 # AAM
 
-A Matlab implementation of Active Appearance Model
+A Matlab and Python implementation of Active Appearance Model
