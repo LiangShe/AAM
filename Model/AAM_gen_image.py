@@ -208,9 +208,9 @@ def AAM_gen_image( p_id_mark, p_id_texture, model, output_res ):
     # scale face area to proportion of images
     peri_ind = np.hstack((model.mark_group.rim, model.mark_group.rim[0]))-1
     area = polyarea(neutral_mark[peri_ind,0], neutral_mark[peri_ind,1])
-    scaling_factor = np.sqrt(resx * resy * 0.6 / area);
+    scaling_factor = np.sqrt(resx * resy * 0.6 / area)
     
-    dy = model.image.y_offset_factor * resx;
+    dy = model.image.y_offset_factor * resx
     
     neutral_mark[:,0] = neutral_mark[:,0] * scaling_factor + resx/2
     neutral_mark[:,1] = neutral_mark[:,1] * scaling_factor + resy/2 + dy

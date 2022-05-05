@@ -61,4 +61,7 @@ class AAM_Model():
             p_id_texture = params[i,nmark:]
             im_syn[:,:,:,i], landmarks[:,:,i] = AAM_gen_image( p_id_mark, p_id_texture, self.data, output_res)
         
-        return im_syn#, landmarks
+        im_syn[im_syn>255] = 255
+        im_syn[im_syn<0] = 0
+        
+        return im_syn, landmarks
